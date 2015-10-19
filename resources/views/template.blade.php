@@ -10,6 +10,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <!-- Bootstrap 3.3.4 -->
+
+      <script src="/offline/offline.min.js" type="text/javascript"></script>
+    
+       <link href="/offline/offline-theme-chrome.css" rel="stylesheet" type="text/css" />
+         
+
     <link href="/bower_components/admin-lte/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <!-- Font Awesome Icons -->
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
@@ -22,9 +28,6 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
       <script src="/bower_components/admin-lte/plugins/slimScroll/jquery.slimscroll.min.js" type="text/javascript"></script>
 
-      <script src="/offline/offline.min.js" type="text/javascript"></script>
-    
-       <link href="/offline/offline.css" rel="stylesheet" type="text/css" />
 
 
 
@@ -33,55 +36,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
           apply the skin class to the body tag so the changes take effect.
     -->
     <link href="/bower_components/admin-lte/dist/css/skins/skin-blue.min.css" rel="stylesheet" type="text/css" />
-
-       <style type="text/css">
-      input.parsley-success,
-      select.parsley-success,
-      textarea.parsley-success {
-        color: #468847;
-        background-color: #DFF0D8;
-        border: 3px solid #D6E9C6;
-      }
-
-      input.parsley-error,
-      select.parsley-error,
-      textarea.parsley-error {
-        color: #FF0000;
-        background-color: #F2DEDE;
-        border: 3px solid #FF0000;
-      }
-
-      .parsley-errors-list {
-        margin: 3px 1 4px 1;
-        padding: 1;
-        list-style-type: none;
-        font-size: 0.9em;
-        line-height: 0.9em;
-        opacity: 0.2;
-        -moz-opacity: 0;
-        -webkit-opacity: 0;
-
-        transition: all .3s ease-in;
-        -o-transition: all .3s ease-in;
-        -ms-transition: all .3s ease-in-;
-        -moz-transition: all .3s ease-in;
-        -webkit-transition: all .3s ease-in;
-      }
-
-      .parsley-errors-list.filled {
-        opacity: 1;
-      }
-
-      #infoArea {
-        color: #B94A48;
-        display: none;
-      }
-	  
-	  .parsley-custom-error-message, .parsley-required{
-		 font-style:bold; 
-		color: #FF0000;  
-	  }
-    </style>
+     <link href="/bower_components/parsleyjs/parsley.css" rel="stylesheet" type="text/css" />
+      
 
     @yield('cdns')
 
