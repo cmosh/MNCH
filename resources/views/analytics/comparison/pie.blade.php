@@ -7,10 +7,11 @@
         var coptions = {
                        'width':'100%',
                        'box-sizing': 'border-box;',
+                       sliceVisibilityThreshold:0,
                        'height':300};
 
         // Instantiate and draw our chart, passing in some options.
-        var c = new google.visualization.PieChart(document.getElementById('canvas'+window.bx));
+        var c = new google.visualization.PieChart(document.getElementById(box));
         c.draw(cdata, coptions);
 
          function resizec () {

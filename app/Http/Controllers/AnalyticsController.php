@@ -7,21 +7,26 @@ use App\Tables\SubmittedCHCountie;
 use App\Tables\SubmittedMNHCount;
 use App\Tables\SubmittedMNHCountie;
 use App\Tables\CHSubSurvey;
+
 use App\Tables\Column_set;
 use App\Tables\Survey;
 use App\Tables\analyse;
 use App\Tables\Map;
 use App\Tables\SurveysDone;
+use Maatwebsite\Excel\Excel;
+
 use App\Tables\MNHSubSurvey;
 use Illuminate\Database\Eloquent\Collection;
+ use App\Http\Controllers\ArrayRedis as Rache;
 use Illuminate\Contracts\Foundation\Application As App;
 use Request;
 use Input;
 use Cache;
-use Excel;
+
 
 	
 class AnalyticsController extends Controller {
+
 
 
 
@@ -36,19 +41,10 @@ class AnalyticsController extends Controller {
        $Year_3 = $data['Year3'];
         $Year_4 = $data['Year4'];
         $Term = $data['Term'];
-
-
-
-
-      if ($county == 'All' && $Term =='All') {
-      
-$CHSubSurvey = Cache::remember('CHV2SubSurvey',180,function(){
-      					return CHSubSurvey::all();
-      	});     
+     
 		
       		      
-      }
-      elseif ($county == 'All' && $Term !=='All') {
+      if ($county == 'All' ) {
       	
       	$CHSubSurvey = Cache::remember('CHV2SubSurvey'.$county.$Term,180,function() use($Term){
       					return 	CHSubSurvey::where('Assessment_Term','Like',$Term)->get();
@@ -57,26 +53,15 @@ $CHSubSurvey = Cache::remember('CHV2SubSurvey',180,function(){
 
       }
 
-
-        elseif ($county !== 'All' && $Term =='All') {
-
-      	$CHSubSurvey = Cache::remember('CHV2SubSurvey'.$county,180,function() use($county){
-      					return 	CHSubSurvey::where('County','Like',$county)->get();
-      	});
-      
-	
-      		
-   
-      }
-      elseif ($county !== 'All' && $Term !=='All') {
+      else{
        	$CHSubSurvey = Cache::remember('CHV2SubSurvey'.$county.$Term,180,function() use($county,$Term){
       					return 	CHSubSurvey::where('County','Like',$county)->where('Assessment_Term','Like',$Term)->get();
       	});
       
       }
-      else{}
+     
 
-    $chanalytics  = analyse::chanalytics($CHSubSurvey,$Year_1,$Year_2,$Year_3,$Year_4,$county);
+    $chanalytics  = analyse::chanalytics($CHSubSurvey,$Year_1,$Year_2,$Year_3,$Year_4,$county,$Term);
 		
 $Map = (Cache::remember('MapCH',180,function() {
       					return 	Map::where('Survey','=','Child Health')->get()->keyBy('Concat')->toArray();
@@ -101,49 +86,27 @@ public function mnhajax(){
 		
 		 if(Request::ajax()) {
       $data = Input::all();
-      $county = $data['county'];
-     
+      $county = $data['county'];     
         $Term = $data['Term'];
 
 
-
-      if ($county == 'All' && $Term =='All') {
-      
-$MNHSubSurvey = Cache::remember('MNHV2SubSurvey',180,function(){
-      					return MNHSubSurvey::all();
-      	});     
-		
-      		      
-      }
-
-      elseif ($county == 'All' && $Term !=='All') {
+ 		if ($county == 'All') {
       	
       	$MNHSubSurvey = Cache::remember('MNHV2SubSurvey'.$county.$Term,180,function() use($Term){
       					return 	MNHSubSurvey::where('Assessment_Term','Like',$Term)->get();
       	});
 
-
       }
 
-
-        elseif ($county !== 'All' && $Term =='All') {
-
-      	$MNHSubSurvey = Cache::remember('MNHV2SubSurvey'.$county,180,function() use($county){
-      					return 	MNHSubSurvey::where('County','Like',$county)->get();
-      	});   
-	
-      }
-
-
-      elseif ($county !== 'All' && $Term !=='All') {
+     else  {
        	$MNHSubSurvey = Cache::remember('MNHV2SubSurvey'.$county.$Term,180,function() use($county,$Term){
       					return 	MNHSubSurvey::where('County','Like',$county)->where('Assessment_Term','Like',$Term)->get();
       	});
       
-      }
-      else{}
 
-    $mnhanalytics  = analyse::mnhanalytics($MNHSubSurvey,$county);
+}
+    
+    $mnhanalytics  = analyse::mnhanalytics($MNHSubSurvey,$county,$Term);
 		
 $Map = (Cache::remember('MapMNH',180,function() {
       					return 	Map::where('Survey','=','Maternal Neonatal Healthcare')->get()->keyBy('Concat')->toArray();
@@ -157,16 +120,21 @@ $Map = (Cache::remember('MapMNH',180,function() {
 
 
 
-	}}
+	}
+
+}
+
+
+
 	public function ch()
 	{
 				
-		
-$CHSubSurvey = Cache::remember('CHV2SubSurvey',180,function(){
-      					return CHSubSurvey::all();
-      	});  
+	$CHSubSurvey = Cache::remember('CHV2SubSurvey'.'All',180,function(){
+      					return 	CHSubSurvey::all();
+      	});
 
-      	//$chanalytics  = analyse::chanalytics($CHSubSurvey,3,3,3,3,'All');
+
+      //	 $chanalytics  = analyse::chanalytics($CHSubSurvey,3,3,3,3,'All','Baseline');
 		
    
 			
@@ -211,7 +179,8 @@ $CHSubSurvey = Cache::remember('CHV2SubSurvey',180,function(){
 			->with('Years',$Years)
 			->with('YearsCount',$YearsCount)
 			->with('AllYears',$AllYears)
-			->with('SurveysDone',$SurveysDone);
+			->with('SurveysDone',$SurveysDone)
+			->with('loc','Child Health Survey');
 
 
 				
@@ -219,66 +188,47 @@ $CHSubSurvey = Cache::remember('CHV2SubSurvey',180,function(){
 
 
 
-	public function comparison($survey,$lambda,$chart){
+	public function comparison($survey,$lambda,$chart,$yr='not'){
 
-		if($survey=='CHV2'){
+		
 
-		$SubmittedCHCounties = Cache::remember('SubmittedCHV2Counties',180,function(){
+		if($survey=='CHV2')
+
+		$SubmittedCounties = Cache::remember('SubmittedCHV2Counties',180,function(){
 							return SubmittedCHCountie::get();
+							 	});
+		elseif($survey=='MNHV2')
+
+		$SubmittedCounties = Cache::remember('SubmittedMNHV2Counties',180,function(){
+							return SubmittedMNHCountie::get();
 							 	});
 
 
-		return view('analytics.comparison.index')->with('SubmittedCounties',$SubmittedCHCounties)
+		return view('analytics.comparison.index')->with('SubmittedCounties',$SubmittedCounties)
 										   ->with('funct',$lambda)
-										   ->with('chart',$chart);
+										   ->with('chart',$chart)
+										   ->with('yr',$yr)
+										   ->with('sv',$survey);
 
-	}
+	
 
 
 
 }
 
-	public function compare(){
-
-		 if(Request::ajax()) {
-      $data = Input::all();
-      $county = $data['county'];
-      $fi = $data['fi'];
-     
-     if($county =='All'){
-     	 $sdata = Cache::remember('CHV2SubSurvey'.$county,180,function(){
-      					return CHSubSurvey::all();
-      	});  
-
-     }
-     	else{
-
-     		 $sdata = Cache::remember('CHV2SubSurvey'.$county,180,function() use ($county){
-      					return CHSubSurvey::where('County','Like',$county)->get();
-      	});  
-
-     	}
-
-     	
-
-       echo json_encode(analyse::getindividual($fi,$sdata,$county));
-  }
-
-  die;
-
-	}
+	
 
 
 	public function mnh()
 	{
 				
 	
-$MNHSubSurvey = Cache::remember('MNHV2SubSurvey',180,function(){
+$MNHSubSurvey = Cache::remember('MNHV2SubSurvey'.'All',180,function(){
       					return MNHSubSurvey::all();
       	});     
 
 
-			//$mnhanalytics  = analyse::mnhanalytics($MNHSubSurvey,'All');
+		//	$mnhanalytics  = analyse::mnhanalytics($MNHSubSurvey,'All','Baseline');
 
 		
 		$SubmittedMNHCount = SubmittedMNHCount::first();
@@ -298,19 +248,27 @@ $MNHSubSurvey = Cache::remember('MNHV2SubSurvey',180,function(){
 
 
 
-		public function tester(){
+		public function tester($key){
+
+			 $value = Cache::get($key);
+
+			
+
+        return ($value1);
 
 		
 	}
 
 
-	public function blah()
+	public function blah(Excel $excel)
 	{
 
-		
 
-	}
 
+
+	
+
+}
 
 	
 	

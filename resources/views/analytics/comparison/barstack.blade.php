@@ -11,7 +11,7 @@ var cdata = google.visualization.arrayToDataTable(jsonData);
         vAxis: {minValue:0},
         chartArea:{left:40,top:25,width:'100%',height:'75%'}
       };
-      var c = new google.visualization.BarChart(document.getElementById('canvas'+window.bx));
+      var c = new google.visualization.BarChart(document.getElementById(box));
       c.draw(cdata, coptions);
 
        function resizec () {
