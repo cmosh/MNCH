@@ -1,7 +1,7 @@
  <header class="main-header header-cont" style="position:fixed" >
 
         <!-- Logo -->
-        <a href="#" class="logo">
+        <a href="/" class="logo">
 
 
         @if ($location == 'Home') 
@@ -55,7 +55,8 @@
             <li><a href="/auth/login">Login</a></li>
             <li><a href="/auth/register">Register</a></li>
           @else
-
+          
+          
            @if (isset($AssID)==true)
                @if($location == 'MN'||$location == 'IM'||$location == 'CH')
 		
